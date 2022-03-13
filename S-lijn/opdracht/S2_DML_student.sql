@@ -123,7 +123,7 @@ DELETE FROM medewerkers WHERE mnr =7499; --kan niet omdat hij nog ingeschreven s
 -- onder de hoede van De Koning. Kies een personeelnummer boven de 8000.
 -- Zorg voor de juiste invoer van deze gegevens.
 
--- begin;
+-- begin transaction;
 -- INSERT INTO medewerkers(mnr, naam, voorl, functie, chef, gbdatum, maandsal, comm, afd) VALUES (8765, 'SEGER', 'JW', 'MANAGER', 7839, '1998-10-31', 3000.00, null, 60 )
 -- ON CONFLICT DO NOTHING;
 -- INSERT INTO afdelingen(anr, naam, locatie, hoofd) VALUES (60, 'FINANCIEN', 'LEERDAM', 8765)

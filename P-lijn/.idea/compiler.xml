@@ -10,7 +10,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="DataPersistency-P-lijn" target="17" />
+      <module name="DataPersistency-P-lijn" target="16" />
     </bytecodeTargetLevel>
   </component>
 </project>

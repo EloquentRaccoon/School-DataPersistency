@@ -47,7 +47,7 @@
 -- Welke medewerkers hebben een bepaalde cursus meer dan één keer gevolgd?
 -- Geef medewerkernummer en cursuscode.
 -- DROP VIEW IF EXISTS s4_4; CREATE OR REPLACE VIEW s4_4 AS                                                     -- [TEST]
-
+SELECT cursist, cursus FROM inschrijvingen GROUP BY cursist, cursus HAVING COUNT(*) > 1;
 
 -- S4.5. 
 -- Hoeveel uitvoeringen (`aantal`) zijn er gepland per cursus?
@@ -59,8 +59,7 @@
 --   JAV    | 4 
 --   OAG    | 2 
 -- DROP VIEW IF EXISTS s4_5; CREATE OR REPLACE VIEW s4_5 AS                                                     -- [TEST]
-
-
+SELECT type, COUNT(*) aantal FROM cursussen GROUP BY type;
 -- S4.6. 
 -- Bepaal hoeveel jaar leeftijdsverschil er zit tussen de oudste en de 
 -- jongste medewerker (`verschil`) en bepaal de gemiddelde leeftijd van
