@@ -110,8 +110,8 @@ UPDATE medewerkers SET maandsal = maandsal * 1.055 WHERE afd = 30 AND functie = 
 --
 -- Martens heeft als verkoper succes en wordt door de concurrent
 -- weggekocht. Verwijder zijn gegevens.
-INSERT INTO medewerkers(mnr, naam, voorl, functie, chef, gbdatum, maandsal, comm, afd) VALUES (7654, 'MARTENS', 'P', 'VERKOPER', 7698, '1976-09-28', 1250.00, 1400.00, 30);
-DELETE FROM medewerkers WHERE mnr =7654;
+INSERT INTO medewerkers(mnr, naam, voorl, functie, chef, gbdatum, maandsal, comm, afd) VALUES (7659, 'MARTENS', 'P', 'VERKOPER', 7698, '1976-09-28', 1250.00, 1400.00, 30);
+DELETE FROM medewerkers WHERE mnr =7659;
 
 -- Zijn collega Alders heeft ook plannen om te vertrekken. Verwijder ook zijn gegevens.
 -- Waarom lukt dit (niet)?
@@ -129,7 +129,6 @@ DELETE FROM medewerkers WHERE mnr =7499; --kan niet omdat hij nog ingeschreven s
 -- INSERT INTO afdelingen(anr, naam, locatie, hoofd) VALUES (60, 'FINANCIEN', 'LEERDAM', 8765)
 -- ON CONFLICT DO NOTHING;
 -- commit;
-
 
 WITH medewerker AS (
     INSERT INTO medewerkers(mnr, naam, voorl, functie, chef, gbdatum, maandsal, comm, afd) VALUES (8765, 'SEGER', 'JW', 'MANAGER', 7839, '1998-10-31', 3000.00, null, 60 )

@@ -47,7 +47,7 @@ ALTER TABLE medewerkers add column geslacht CHAR(1) CONSTRAINT m_geslacht_chk  C
 -- zonder geslacht
 INSERT INTO medewerkers (mnr, naam, voorl, functie, gbdatum, maandsal, comm) VALUES (8000, 'SEGER' , 'J', 'DIRECTEUR', '01-01-1970', 1000.00, 100.00);
 -- met geslacht
-INSERT INTO medewerkers (mnr, naam, voorl, functie, gbdatum, maandsal, comm, m_geslacht_chk) VALUES (8000, 'SEGER' , 'J', 'DIRECTEUR', '01-01-1970', 1000.00, 100.00, 'M');
+-- INSERT INTO medewerkers (mnr, naam, voorl, functie, gbdatum, maandsal, comm, m_geslacht_chk) VALUES (8000, 'SEGER' , 'J', 'DIRECTEUR', '01-01-1970', 1000.00, 100.00, 'M');
 
 -- S1.3. Verbetering op afdelingentabel
 --
