@@ -1,4 +1,7 @@
-package com.jeffDev.DataPersistency;
+package com.jeffDev.DataPersistency.SQL;
+
+import com.jeffDev.DataPersistency.Object.Reiziger;
+import com.jeffDev.DataPersistency.Interface.ReizigerDAO;
 
 import java.sql.*;
 import java.sql.Date;
@@ -6,8 +9,9 @@ import java.util.*;
 
 import static java.lang.String.format;
 
-public class ReizigerDAOPsql implements ReizigerDAO{
+public class ReizigerDAOPsql implements ReizigerDAO {
     private static Connection connection = null;
+    private AdresDAOPsql adresDAOPsql = new AdresDAOPsql();
 
 
     private static Connection getConnection() throws SQLException {
@@ -179,6 +183,10 @@ public class ReizigerDAOPsql implements ReizigerDAO{
         reiziger.setTussenvoegsel(set.getString("tussenvoegsel"));
         reiziger.setAchternaam(set.getString("achternaam"));
         reiziger.setGeboortedatum(set.getDate("geboortedatum"));
+
+        if (this.adresDAOPsql != null){
+            reiziger.setAdres(adresDAOPsql.findByReiziger(reiziger));
+        }
 
         return reiziger;
     }

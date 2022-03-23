@@ -1,4 +1,6 @@
-package com.jeffDev.DataPersistency;
+package com.jeffDev.DataPersistency.Object;
+
+import com.jeffDev.DataPersistency.SQL.AdresDAOPsql;
 
 import java.util.Date;
 
@@ -8,14 +10,16 @@ public class Reiziger {
     private String tussenvoegsel;
     private String achternaam;
     private Date geboortedatum;
+    private Adres adres;
 
-    public Reiziger (){}
+    public Reiziger(){}
     public Reiziger(int ID, String voorletters, String tussenvoegsel, String achternaam, java.sql.Date geboortedatum) {
         this.reizigerID = ID;
         this.voorletters = voorletters;
         this.tussenvoegsel = tussenvoegsel;
         this.achternaam = achternaam;
         this.geboortedatum = geboortedatum;
+
     }
 
     public int getReizigerID() {
@@ -56,6 +60,12 @@ public class Reiziger {
 
     public void setGeboortedatum(Date geboortedatum) {
         this.geboortedatum = geboortedatum;
+    }
+
+    public Adres getAdres(){return adres;}
+
+    public void setAdres(Adres adres) {
+        this.adres = adres;
     }
 
     public String toString() {
