@@ -2,7 +2,9 @@ package com.jeffDev.DataPersistency.Object;
 
 import com.jeffDev.DataPersistency.SQL.AdresDAOPsql;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class Reiziger {
     private int reizigerID;
@@ -11,6 +13,7 @@ public class Reiziger {
     private String achternaam;
     private Date geboortedatum;
     private Adres adres;
+    private List<OvChipkaart> ovChipkaarten = new ArrayList<>();
 
     public Reiziger(){}
     public Reiziger(int ID, String voorletters, String tussenvoegsel, String achternaam, java.sql.Date geboortedatum) {
@@ -66,6 +69,14 @@ public class Reiziger {
 
     public void setAdres(Adres adres) {
         this.adres = adres;
+    }
+
+    public List<OvChipkaart> getOvChipkaarten() {
+        return ovChipkaarten;
+    }
+
+    public void setOvChipkaarten(List<OvChipkaart> ovChipkaarten) {
+        this.ovChipkaarten = ovChipkaarten;
     }
 
     public String toString() {

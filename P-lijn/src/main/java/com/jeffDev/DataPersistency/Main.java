@@ -1,10 +1,13 @@
 package com.jeffDev.DataPersistency;
 
 import com.jeffDev.DataPersistency.Interface.AdresDAO;
+import com.jeffDev.DataPersistency.Interface.OvChipkaartDAO;
 import com.jeffDev.DataPersistency.Object.Adres;
+import com.jeffDev.DataPersistency.Object.OvChipkaart;
 import com.jeffDev.DataPersistency.Object.Reiziger;
 import com.jeffDev.DataPersistency.Interface.ReizigerDAO;
 import com.jeffDev.DataPersistency.SQL.AdresDAOPsql;
+import com.jeffDev.DataPersistency.SQL.OvChipkaartDAOPsql;
 import com.jeffDev.DataPersistency.SQL.ReizigerDAOPsql;
 
 import java.sql.*;
@@ -19,8 +22,12 @@ public class Main {
 
         ReizigerDAOPsql reizigerDaoPsql = new ReizigerDAOPsql();
         testReizigerDAO(reizigerDaoPsql);
+
         AdresDAOPsql adresDaoPsql = new AdresDAOPsql();
         testAdresDAO(adresDaoPsql);
+
+        OvChipkaartDAOPsql ovChipkaartDaoPsql = new OvChipkaartDAOPsql();
+        testOvChipkaartDAO(ovChipkaartDaoPsql);
 
     }
 
@@ -79,7 +86,6 @@ public class Main {
         reizigers = rdao.findAll();
         System.out.println(reizigers.size() + " reizigers\n");
 
-
         // Update de gbdatum van reiziger sietske en persisteer deze in de database
         System.out.println("-----[Test update and presist reiziger to database]-----");
         String newGbdatum = "1992-03-14";
@@ -124,7 +130,6 @@ public class Main {
         adressen = adao.findAll();
         System.out.println(adressen.size() + " adressen\n");
 
-
         // Update de huisnummer van het adres en persisteer deze in de database
         System.out.println("-----[Test update and presist adres to database]-----");
         Adres updateAdres = adao.findById(adresID);
@@ -142,5 +147,51 @@ public class Main {
         adao.delete(deleteAdres);
         deleteAdres = adao.findById(adresID);
         System.out.println(deleteAdres + "\n");
+    }
+
+    private static void testOvChipkaartDAO(OvChipkaartDAOPsql ovdao) throws SQLException {
+        System.out.println("\n---------- Test ReizigerDAO -------------");
+
+        // Haal alle OvChipkaarten op uit de database
+        System.out.println("-----[Test pull OvChipkaarten from database]-----");
+        List<OvChipkaart> kaarten = ovdao.findAll();
+        System.out.println("[Test] OvChipkaartDAO.findAll() geeft de volgende OvChipkaarten:");
+        for (OvChipkaart k : kaarten) {
+            System.out.println(k);
+        }
+        System.out.println();
+
+        // Maak een nieuwe OvChipkaart aan en persisteer deze in de database
+        System.out.println("-----[Test create and presist OvChipkaart to database]-----");
+        String afloopDatum = "2022-03-31";
+        int reizigerID = 1;
+        int kaartnummer = 69420;
+        while (ovdao.findByKaartnummer(kaartnummer) != null) {
+            kaartnummer += 1;
+        }
+        OvChipkaart nieuweOvKaart = new OvChipkaart(kaartnummer, java.sql.Date.valueOf(afloopDatum), 1, 12345, reizigerID);
+        System.out.print("[Test] Eerst " + kaarten.size() + " reizigers, na OvChipkaartDAO.save() ");
+        ovdao.save(nieuweOvKaart);
+        kaarten = ovdao.findAll();
+        System.out.println(kaarten.size() + " OvChipkaarten\n");
+
+        // Update de afloop datum van de OvChipkaart en persisteer deze in de database
+        System.out.println("-----[Test update and presist OvChipkaart to database]-----");
+        String newAfloopdatum = "2022-09-30";
+        OvChipkaart updateOvKaart;
+        updateOvKaart = ovdao.findByKaartnummer(kaartnummer);
+        System.out.print("[Test] OvKaart eerst: " + updateOvKaart + " \n[Test] OvKaart na update: ");
+        updateOvKaart.setAfloopDatum(java.sql.Date.valueOf(newAfloopdatum));
+        ovdao.update(updateOvKaart);
+        System.out.println(updateOvKaart + "\n");
+
+        // Delete de OvChipkaart uit de database
+        System.out.println("-----[Test Delete OvChipkaart from database]-----");
+        OvChipkaart deleteOvKaart;
+        deleteOvKaart = ovdao.findByKaartnummer(kaartnummer);
+        System.out.print("[Test] Check bestaat OvKaart " + deleteOvKaart + " \n[Test] OvKaart na delete: ");
+        ovdao.delete(deleteOvKaart);
+        deleteOvKaart = ovdao.findByKaartnummer(kaartnummer);
+        System.out.println(deleteOvKaart + "\n");
     }
 }

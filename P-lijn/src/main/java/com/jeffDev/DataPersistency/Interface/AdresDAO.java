@@ -10,5 +10,5 @@ public interface AdresDAO {
     Adres findById(int i);
     Adres save(Adres reiziger);
     Adres update(Adres reiziger);
-    boolean delete(Adres reiziger);
+    Adres delete(Adres reiziger);
 }

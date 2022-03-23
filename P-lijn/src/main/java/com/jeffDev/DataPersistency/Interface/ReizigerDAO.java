@@ -11,7 +11,7 @@ public interface ReizigerDAO {
         Reiziger findById(int i);
         Reiziger save(Reiziger reiziger);
         Reiziger update(Reiziger reiziger);
-        boolean delete(Reiziger reiziger);
+        Reiziger delete(Reiziger reiziger);
 
 
 }
