@@ -1,6 +1,4 @@
-package com.jeffDev.DataPersistency.Object;
-
-import com.jeffDev.DataPersistency.SQL.AdresDAOPsql;
+package com.jeffDev.DataPersistency.Domein;
 
 import java.util.ArrayList;
 import java.util.Date;

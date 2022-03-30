@@ -1,9 +1,8 @@
 package com.jeffDev.DataPersistency.Interface;
 
-import com.jeffDev.DataPersistency.Object.OvChipkaart;
-import com.jeffDev.DataPersistency.Object.Reiziger;
+import com.jeffDev.DataPersistency.Domein.OvChipkaart;
+import com.jeffDev.DataPersistency.Domein.Reiziger;
 
-import java.sql.SQLException;
 import java.util.List;
 
 public interface OvChipkaartDAO {

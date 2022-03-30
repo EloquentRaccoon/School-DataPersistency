@@ -1,13 +1,14 @@
 package com.jeffDev.DataPersistency;
 
+import com.jeffDev.DataPersistency.Domein.Product;
 import com.jeffDev.DataPersistency.Interface.AdresDAO;
-import com.jeffDev.DataPersistency.Interface.OvChipkaartDAO;
-import com.jeffDev.DataPersistency.Object.Adres;
-import com.jeffDev.DataPersistency.Object.OvChipkaart;
-import com.jeffDev.DataPersistency.Object.Reiziger;
+import com.jeffDev.DataPersistency.Domein.Adres;
+import com.jeffDev.DataPersistency.Domein.OvChipkaart;
+import com.jeffDev.DataPersistency.Domein.Reiziger;
 import com.jeffDev.DataPersistency.Interface.ReizigerDAO;
 import com.jeffDev.DataPersistency.SQL.AdresDAOPsql;
 import com.jeffDev.DataPersistency.SQL.OvChipkaartDAOPsql;
+import com.jeffDev.DataPersistency.SQL.ProductDAOPsql;
 import com.jeffDev.DataPersistency.SQL.ReizigerDAOPsql;
 
 import java.sql.*;
@@ -18,16 +19,20 @@ import static java.lang.String.format;
 public class Main {
     private static Connection connection = null;
 
-    public static void main(String[] args) throws SQLException {
-
-        ReizigerDAOPsql reizigerDaoPsql = new ReizigerDAOPsql();
+    public static void main(String[] args) throws SQLException {;
+        getConnection();
+        ReizigerDAOPsql reizigerDaoPsql = new ReizigerDAOPsql(connection);
         testReizigerDAO(reizigerDaoPsql);
 
-        AdresDAOPsql adresDaoPsql = new AdresDAOPsql();
+        AdresDAOPsql adresDaoPsql = new AdresDAOPsql(connection);
         testAdresDAO(adresDaoPsql);
 
-        OvChipkaartDAOPsql ovChipkaartDaoPsql = new OvChipkaartDAOPsql();
+        OvChipkaartDAOPsql ovChipkaartDaoPsql = new OvChipkaartDAOPsql(connection);
         testOvChipkaartDAO(ovChipkaartDaoPsql);
+
+        ProductDAOPsql productDAOPsql = new ProductDAOPsql(connection);
+        testProductDAO(productDAOPsql);
+        connection.close();
 
     }
 
@@ -45,13 +50,6 @@ public class Main {
             connection = DriverManager.getConnection(url);
         }
         return connection;
-    }
-
-    private static void closeConnection() throws SQLException {
-        if (connection != null) {
-            connection.close();
-            connection = null;
-        }
     }
 
     /**
@@ -150,7 +148,7 @@ public class Main {
     }
 
     private static void testOvChipkaartDAO(OvChipkaartDAOPsql ovdao) throws SQLException {
-        System.out.println("\n---------- Test ReizigerDAO -------------");
+        System.out.println("\n---------- Test OvChipkaartDAO -------------");
 
         // Haal alle OvChipkaarten op uit de database
         System.out.println("-----[Test pull OvChipkaarten from database]-----");
@@ -193,5 +191,46 @@ public class Main {
         ovdao.delete(deleteOvKaart);
         deleteOvKaart = ovdao.findByKaartnummer(kaartnummer);
         System.out.println(deleteOvKaart + "\n");
+    }
+
+    private static void testProductDAO(ProductDAOPsql pdao) throws SQLException{
+        System.out.println("\n---------- Test ProductDAO -------------");
+
+        // Haal alle producten op uit de database
+        System.out.println("-----[Test pull producten from database]-----");
+        List<Product> producten = pdao.findAll();
+        System.out.println("[Test] ReizigerDAO.findAll() geeft de volgende reizigers:");
+        for (Product p : producten) {
+            System.out.println(p);
+        }
+        System.out.println();
+
+        // Maak een nieuw product aan en persisteer deze in de database
+        System.out.println("-----[Test create and presist product to database]-----");
+        int reizigerID = 66;
+        Product newProduct = new Product(18293, "Enkele Reis", "Enkele richting op reizig met korting", 5.00);
+        System.out.print("[Test] Eerst " + producten.size() + " producten, na ProductDAO.save() ");
+        pdao.save(newProduct);
+        producten = pdao.findAll();
+        System.out.println(producten.size() + " producten\n");
+
+        // Update de prijs van product en persisteer deze in de database
+        System.out.println("-----[Test update and presist product to database]-----");
+        Double newPrijs = 7.50;
+        Product updateProduct;
+        updateProduct = pdao.findByProductNummer(18293);
+        System.out.print("[Test] Product eerst: " + updateProduct + " \n[Test] Product na update: ");
+        updateProduct.setPrijs(newPrijs);
+        pdao.update(updateProduct);
+        System.out.println(updateProduct + "\n");
+
+        // Delete Product uit de database
+        System.out.println("-----[Test Delete product from database]-----");
+        Product deleteProduct;
+        deleteProduct = pdao.findByProductNummer(18293);
+        System.out.print("[Test] Check bestaat Product " + deleteProduct + " \n[Test] Product na delete: ");
+        pdao.delete(deleteProduct);
+        deleteProduct = pdao.findByProductNummer(18293);
+        System.out.println(deleteProduct + "\n");
     }
 }

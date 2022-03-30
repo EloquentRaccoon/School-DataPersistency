@@ -1,4 +1,4 @@
-package com.jeffDev.DataPersistency.Object;
+package com.jeffDev.DataPersistency.Domein;
 
 public class Adres {
     private int adresID;

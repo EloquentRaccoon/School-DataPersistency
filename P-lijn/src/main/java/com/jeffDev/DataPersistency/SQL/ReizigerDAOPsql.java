@@ -1,6 +1,9 @@
 package com.jeffDev.DataPersistency.SQL;
 
-import com.jeffDev.DataPersistency.Object.Reiziger;
+import com.jeffDev.DataPersistency.Interface.AdresDAO;
+import com.jeffDev.DataPersistency.Interface.OvChipkaartDAO;
+import com.jeffDev.DataPersistency.Domein.OvChipkaart;
+import com.jeffDev.DataPersistency.Domein.Reiziger;
 import com.jeffDev.DataPersistency.Interface.ReizigerDAO;
 
 import java.sql.*;
@@ -11,43 +14,23 @@ import static java.lang.String.format;
 
 public class ReizigerDAOPsql implements ReizigerDAO {
     private static Connection connection = null;
-    private AdresDAOPsql adresDAOPsql = new AdresDAOPsql();
+    private AdresDAO adresDAO;
+    private OvChipkaartDAO ovChipkaartDAO;
 
-
-    private static Connection getConnection() throws SQLException {
-        if (connection == null) {
-            String databaseName = "ovchip";
-            String userName = "postgres";
-            String password = "qwerty";
-
-            String url = format(
-                    "jdbc:postgresql://localhost/%s?user=%s&password=%s", databaseName, userName, password
-            );
-
-            connection = DriverManager.getConnection(url);
-        }
-        return connection;
-    }
-
-    private static void closeConnection() throws SQLException {
-        if (connection != null) {
-            connection.close();
-            connection = null;
-        }
+    public ReizigerDAOPsql (Connection connection){
+        ReizigerDAOPsql.connection = connection;
     }
 
     public List<Reiziger> findAll() {
         try {
             List<Reiziger> reizigers = new ArrayList<Reiziger>();
             String query = "SELECT * FROM reiziger;";
-            PreparedStatement statement = getConnection().prepareStatement(query);
+            PreparedStatement statement = connection.prepareStatement(query);
             ResultSet set = statement.executeQuery();
 
             while (set != null && set.next()) {
                 reizigers.add(buildReizigerObject(set));
             }
-
-            closeConnection();
             return reizigers;
 
         } catch (Exception e) {
@@ -62,11 +45,10 @@ public class ReizigerDAOPsql implements ReizigerDAO {
             String query = "SELECT reiziger_id, voorletters, tussenvoegsel, achternaam, geboortedatum " +
                     "FROM reiziger WHERE reiziger_id = ?;";
 
-            PreparedStatement statement = getConnection().prepareStatement(query);
+            PreparedStatement statement = connection.prepareStatement(query);
             statement.setInt(1, id);
             ResultSet set = statement.executeQuery();
 
-            closeConnection();
             if(set.next()) {
                 return buildReizigerObject(set);
             }
@@ -81,7 +63,7 @@ public class ReizigerDAOPsql implements ReizigerDAO {
         try {
             String query = "SELECT reiziger_id, voorletters, tussenvoegsel, achternaam, geboortedatum " +
                     "FROM reiziger WHERE geboortedatum = ?;";
-            PreparedStatement statement = getConnection().prepareStatement(query);
+            PreparedStatement statement = connection.prepareStatement(query);
             statement.setDate(1, GBdatum);
 
             ResultSet set = statement.executeQuery();
@@ -90,7 +72,6 @@ public class ReizigerDAOPsql implements ReizigerDAO {
             while (set != null && set.next()) {
                 reizigers.add(buildReizigerObject(set));
             }
-            closeConnection();
             return reizigers;
 
         } catch (SQLException e) {
@@ -105,7 +86,7 @@ public class ReizigerDAOPsql implements ReizigerDAO {
         try {
             String query = "INSERT INTO reiziger (reiziger_id, voorletters, tussenvoegsel, achternaam, geboortedatum) VALUES (?,?, ?, ?, ?);";
 
-            PreparedStatement statement = getConnection().prepareStatement(query);
+            PreparedStatement statement = connection.prepareStatement(query);
 
             statement.setInt(1, reiziger.getReizigerID());
             statement.setString(2, reiziger.getVoorletters());
@@ -113,12 +94,17 @@ public class ReizigerDAOPsql implements ReizigerDAO {
             statement.setString(4, reiziger.getAchternaam());
             statement.setDate(5, (Date) reiziger.getGeboortedatum());
 
+            if (this.adresDAO != null){
+                this.adresDAO.save(reiziger.getAdres());
+            }
+
+            if(this.ovChipkaartDAO != null){
+                for (OvChipkaart kaart: reiziger.getOvChipkaarten()) {
+                    this.ovChipkaartDAO.save(kaart);
+                }
+            }
+
             statement.executeUpdate();
-            //ResultSet set = statement.getGeneratedKeys();
-            closeConnection();
-//            if(set.next()) {
-//                return findById(set.getInt(1));
-//            }
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -131,19 +117,26 @@ public class ReizigerDAOPsql implements ReizigerDAO {
             String query =
                     "UPDATE reiziger SET voorletters = ?, tussenvoegsel = ?, achternaam = ?, geboortedatum = ? " +
                             "WHERE reiziger_id = ?";
-            PreparedStatement statement = getConnection().prepareStatement(query);
+            PreparedStatement statement = connection.prepareStatement(query);
             statement.setString(1, reiziger.getVoorletters());
             statement.setString(2, reiziger.getTussenvoegsel());
             statement.setString(3, reiziger.getAchternaam());
             statement.setDate(4, (Date) reiziger.getGeboortedatum());
             statement.setInt(5, reiziger.getReizigerID());
+
+
+            if (this.adresDAO != null){
+                this.adresDAO.save(reiziger.getAdres());
+            }
+
+            if(this.ovChipkaartDAO != null){
+                for (OvChipkaart kaart: reiziger.getOvChipkaarten()) {
+                    this.ovChipkaartDAO.save(kaart);
+                }
+            }
+
             statement.executeUpdate();
 
-//            ResultSet set = statement.getGeneratedKeys();
-            closeConnection();
-//            if (set.rowUpdated()) {
-//                return findById(reiziger.getReizigerID());
-//            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -154,11 +147,21 @@ public class ReizigerDAOPsql implements ReizigerDAO {
     public Reiziger delete(Reiziger reiziger) {
         try {
             String query = "DELETE FROM reiziger WHERE reiziger_id = ?";
-            PreparedStatement statement = getConnection().prepareStatement(query);
+            PreparedStatement statement = connection.prepareStatement(query);
             statement.setInt(1, reiziger.getReizigerID());
-            statement.executeUpdate();
 
-            closeConnection();
+
+            if (this.adresDAO != null){
+                this.adresDAO.save(reiziger.getAdres());
+            }
+
+            if(this.ovChipkaartDAO != null){
+                for (OvChipkaart kaart: reiziger.getOvChipkaarten()) {
+                    this.ovChipkaartDAO.save(kaart);
+                }
+            }
+
+            statement.executeUpdate();
 
 
         } catch (SQLException e) {
@@ -176,8 +179,8 @@ public class ReizigerDAOPsql implements ReizigerDAO {
             reiziger.setAchternaam(set.getString("achternaam"));
             reiziger.setGeboortedatum(set.getDate("geboortedatum"));
 
-            if (this.adresDAOPsql != null) {
-                reiziger.setAdres(adresDAOPsql.findByReiziger(reiziger));
+            if (this.adresDAO != null) {
+                reiziger.setAdres(adresDAO.findByReiziger(reiziger));
             }
 
             return reiziger;

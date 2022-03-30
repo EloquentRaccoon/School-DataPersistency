@@ -1,7 +1,9 @@
 package com.jeffDev.DataPersistency.SQL;
 
-import com.jeffDev.DataPersistency.Object.OvChipkaart;
-import com.jeffDev.DataPersistency.Object.Reiziger;
+import com.jeffDev.DataPersistency.Domein.OvChipkaart;
+import com.jeffDev.DataPersistency.Domein.Product;
+import com.jeffDev.DataPersistency.Domein.Reiziger;
+import com.jeffDev.DataPersistency.Interface.ProductDAO;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -11,41 +13,23 @@ import static java.lang.String.format;
 
 public class OvChipkaartDAOPsql {
     private static Connection connection = null;
+    private ProductDAO productDAO;
 
-
-    private static Connection getConnection() throws SQLException {
-        if (connection == null) {
-            String databaseName = "ovchip";
-            String userName = "postgres";
-            String password = "qwerty";
-
-            String url = format(
-                    "jdbc:postgresql://localhost/%s?user=%s&password=%s", databaseName, userName, password
-            );
-
-            connection = DriverManager.getConnection(url);
-        }
-        return connection;
+    public OvChipkaartDAOPsql(Connection connection) {
+        OvChipkaartDAOPsql.connection = connection;
     }
 
-    private static void closeConnection() throws SQLException {
-        if (connection != null) {
-            connection.close();
-            connection = null;
-        }
-    }
 
     public List<OvChipkaart> findAll() {
         try {
             List<OvChipkaart> kaarten = new ArrayList<OvChipkaart>();
             String query = "SELECT * FROM ov_chipkaart;";
-            PreparedStatement statement = getConnection().prepareStatement(query);
+            PreparedStatement statement = connection.prepareStatement(query);
             ResultSet set = statement.executeQuery();
 
             while (set != null && set.next()) {
                 kaarten.add(buildOvChipkaart(set));
             }
-            closeConnection();
             return kaarten;
 
         } catch (Exception e) {
@@ -58,15 +42,14 @@ public class OvChipkaartDAOPsql {
     public OvChipkaart findByKaartnummer(int kaartnummer) throws SQLException {
         try {
             String query = "SELECT * FROM ov_chipkaart WHERE kaart_nummer = ?;";
-            PreparedStatement statement = getConnection().prepareStatement(query);
+            PreparedStatement statement = connection.prepareStatement(query);
 
             statement.setInt(1, kaartnummer);
             ResultSet set = statement.executeQuery();
-
-            closeConnection();
-            if(set.next()) {
+            if (set.next()) {
                 return buildOvChipkaart(set);
             }
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -76,7 +59,7 @@ public class OvChipkaartDAOPsql {
     public List<OvChipkaart> findByReiziger(Reiziger reiziger) throws SQLException {
         try {
             String query = "SELECT * FROM ov_chipkaart WHERE reiziger_id = ?;";
-            PreparedStatement statement = getConnection().prepareStatement(query);
+            PreparedStatement statement = connection.prepareStatement(query);
 
             statement.setInt(1, reiziger.getReizigerID());
             ResultSet set = statement.executeQuery();
@@ -85,7 +68,6 @@ public class OvChipkaartDAOPsql {
             while (set != null && set.next()) {
                 kaarten.add(buildOvChipkaart(set));
             }
-            closeConnection();
             return kaarten;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -95,19 +77,25 @@ public class OvChipkaartDAOPsql {
 
     public OvChipkaart save(OvChipkaart ovChipkaart) throws SQLException {
         try {
-            String query =
-                    "INSERT INTO ov_chipkaart (kaart_nummer, geldig_tot, klasse, saldo, reiziger_id) " +
-                            "VALUES (?, ?, ?, ?, ?);";
-            PreparedStatement statement = getConnection().prepareStatement(query);
+            String query = "INSERT INTO ov_chipkaart (kaart_nummer, geldig_tot, klasse, saldo, reiziger_id) VALUES (?, ?, ?, ?, ?);";
+            PreparedStatement statement = connection.prepareStatement(query);
             statement.setInt(1, ovChipkaart.getKaartNummer());
             statement.setDate(2, (Date) ovChipkaart.getAfloopDatum());
             statement.setInt(3, ovChipkaart.getKlasse());
             statement.setDouble(4, ovChipkaart.getSaldo());
             statement.setInt(5, ovChipkaart.getReizigerId());
-
             statement.executeUpdate();
 
-            closeConnection();
+            if (this.productDAO != null) {
+                for (Product product : ovChipkaart.getProducten()) {
+                    query = "INSERT INTO ov_chipkaart_product (kaart_nummer, product_nummer) VALUES (?, ?);";
+                    statement = connection.prepareStatement(query);
+                    statement.setInt(1, ovChipkaart.getKaartNummer());
+                    statement.setInt(2, product.getProductNummer());
+                    statement.executeUpdate();
+                }
+            }
+            statement.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -118,16 +106,56 @@ public class OvChipkaartDAOPsql {
     public OvChipkaart update(OvChipkaart ovChipkaart) throws SQLException {
         try {
             String query = "UPDATE ov_chipkaart SET geldig_tot = ?, klasse = ?, saldo = ?, reiziger_id = ? WHERE kaart_nummer = ?;";
-            PreparedStatement statement = getConnection().prepareStatement(query);
+            PreparedStatement statement = connection.prepareStatement(query);
 
             statement.setDate(1, (Date) ovChipkaart.getAfloopDatum());
             statement.setInt(2, ovChipkaart.getKlasse());
             statement.setDouble(3, ovChipkaart.getKlasse());
             statement.setInt(4, ovChipkaart.getReizigerId());
             statement.setInt(5, ovChipkaart.getKaartNummer());
-
             statement.executeUpdate();
-            closeConnection();
+
+            if (this.productDAO != null) {
+                List<Product> newProducts = ovChipkaart.getProducten();
+                List<Product> oldProducts = new ArrayList<>();
+                List<Product> difference;
+                query = "SELECT * FROM product JOIN ov_chipkaart_product WHERE kaart_nummer = (?);";
+                statement = connection.prepareStatement(query);
+                statement.setInt(1, ovChipkaart.getKaartNummer());
+                ResultSet set = statement.executeQuery();
+
+                while (set != null && set.next()) {
+                    Product oldProduct = new Product(
+                            set.getInt("product_nummer"),
+                            set.getString("naam"),
+                            set.getString("beschrijving"),
+                            set.getDouble("prijs"));
+                    oldProducts.add(oldProduct);
+                }
+
+                if (newProducts.size() > oldProducts.size()){
+                    difference = newProducts;
+                    difference.removeAll(oldProducts);
+                    for (Product product : difference) {
+                        query = "INSERT INTO ov_chipkaart_product (kaart_nummer, product_nummer) VALUES (?, ?);";
+                        statement = connection.prepareStatement(query);
+                        statement.setInt(1, ovChipkaart.getKaartNummer());
+                        statement.setInt(2, product.getProductNummer());
+                        statement.executeUpdate();
+                    }
+                } else if (oldProducts.size() > newProducts.size()){
+                    difference = oldProducts;
+                    difference.removeAll(newProducts);
+                    for (Product product : difference) {
+                        query = "DELETE FROM ov_chipkaart_product WHERE (kaart_nummer, product_nummer) VALUES (?, ?);";
+                        statement = connection.prepareStatement(query);
+                        statement.setInt(1, ovChipkaart.getKaartNummer());
+                        statement.setInt(2, product.getProductNummer());
+                        statement.executeUpdate();
+                    }
+                }
+            }
+            statement.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -137,11 +165,10 @@ public class OvChipkaartDAOPsql {
     public OvChipkaart delete(OvChipkaart ovChipkaart) throws SQLException {
         try {
             String query = "DELETE FROM ov_chipkaart WHERE kaart_nummer = ?;";
-            PreparedStatement statement = getConnection().prepareStatement(query);
+            PreparedStatement statement = connection.prepareStatement(query);
             statement.setInt(1, ovChipkaart.getKaartNummer());
 
             statement.executeUpdate();
-            closeConnection();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -159,7 +186,7 @@ public class OvChipkaartDAOPsql {
                     set.getInt("reiziger_id")
             );
 
-            ReizigerDAOPsql reizigerDAOPsql = new ReizigerDAOPsql();
+            ReizigerDAOPsql reizigerDAOPsql = new ReizigerDAOPsql(connection);
             ovChipkaart.setReiziger(reizigerDAOPsql.findById(ovChipkaart.getReizigerId()));
 
             return ovChipkaart;

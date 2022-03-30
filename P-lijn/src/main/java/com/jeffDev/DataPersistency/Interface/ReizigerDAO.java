@@ -1,6 +1,6 @@
 package com.jeffDev.DataPersistency.Interface;
 
-import com.jeffDev.DataPersistency.Object.Reiziger;
+import com.jeffDev.DataPersistency.Domein.Reiziger;
 
 import java.sql.*;
 import java.util.List;

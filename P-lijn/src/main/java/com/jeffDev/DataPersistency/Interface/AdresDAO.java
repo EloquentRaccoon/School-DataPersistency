@@ -1,7 +1,7 @@
 package com.jeffDev.DataPersistency.Interface;
 
-import com.jeffDev.DataPersistency.Object.Adres;
-import com.jeffDev.DataPersistency.Object.Reiziger;
+import com.jeffDev.DataPersistency.Domein.Adres;
+import com.jeffDev.DataPersistency.Domein.Reiziger;
 import java.util.List;
 
 public interface AdresDAO {
