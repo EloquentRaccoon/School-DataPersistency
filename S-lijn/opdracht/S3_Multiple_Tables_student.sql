@@ -29,7 +29,9 @@
 -- Produceer een overzicht van alle cursusuitvoeringen; geef de
 -- code, de begindatum, de lengte en de naam van de docent.
 DROP VIEW IF EXISTS s3_1; CREATE OR REPLACE VIEW s3_1 AS                                                     -- [TEST]
-SELECT cursus,begindatum, naam AS naam FROM uitvoeringen LEFT JOIN medewerkers m on uitvoeringen.docent = m.mnr ;
+SELECT cursus,begindatum, c.lengte, naam AS naam FROM uitvoeringen
+    LEFT JOIN medewerkers m on uitvoeringen.docent = m.mnr
+    JOIN cursussen c on uitvoeringen.cursus = c.code;
 
 
 -- S3.2.
@@ -37,10 +39,10 @@ SELECT cursus,begindatum, naam AS naam FROM uitvoeringen LEFT JOIN medewerkers m
 -- van alle S02-cursussen, met de achternaam van zijn cursusdocent (`docent`).
 DROP VIEW IF EXISTS s3_2; CREATE OR REPLACE VIEW s3_2 AS                                                     -- [TEST]
 SELECT student.naam AS student, docent.naam AS docent FROM medewerkers student
-    JOIN inschrijvingen i  ON student.mnr = i.cursist
-    JOIN uitvoeringen u ON i.cursus = u.cursus AND i.begindatum = u.begindatum
-    JOIN medewerkers docent ON docent.mnr = u.docent
-WHERE i.cursus = 'S02';
+    JOIN inschrijvingen inschrijving  ON student.mnr = inschrijving.cursist
+    JOIN uitvoeringen uitvoering ON inschrijving.cursus = uitvoering.cursus AND inschrijving.begindatum = uitvoering.begindatum
+    JOIN medewerkers docent ON docent.mnr = uitvoering.docent
+WHERE inschrijving.cursus = 'S02';
 
 
 -- S3.3.

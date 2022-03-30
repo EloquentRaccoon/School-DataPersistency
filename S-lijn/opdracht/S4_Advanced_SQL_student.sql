@@ -83,10 +83,9 @@ SELECT (DATE_PART('year', max(gbdatum)::date) - DATE_PART('year', min(gbdatum)::
 -- krijgen (`commissie_medewerkers`), en hoeveel dat gemiddeld
 -- per verkoper is (`commissie_verkopers`).
 DROP VIEW IF EXISTS s4_7; CREATE OR REPLACE VIEW s4_7 AS                                                     -- [TEST]
-SELECT count(m) AS "aantal medewerkers",
-       avg(m.comm) AS "commisie medewerkers" ,
-       avg(v.comm) / count(v.functie) AS "commisie verkoper" FROM medewerkers m
-LEFT JOIN medewerkers v ON v.mnr = m.mnr AND v.functie = 'VERKOPER';
+SELECT COUNT(*) aantal_medewerkers, avg(coalesce(comm,0)) commisie_medewerkers,
+        avg(comm) comissie_verkopers
+FROM medewerkers;
 
 
 
